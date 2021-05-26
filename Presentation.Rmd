@@ -1,0 +1,77 @@
+---
+title: "Developing Data Product Week 4: Mortgage calculator"
+author: "Jasmina"
+date: "26 maj 2021"
+output: ioslides_presentation
+---
+
+##The project overview
+
+-The aim of this Assignment was to produce a simple Shiny app and a presentation.
+
+-The Mortgage Calculator app is a simple app, that calculates your monthly mortgage payment.
+
+- In order to calculate the monthly payment you need to:
+
+    - input the loan amount (P)
+    - adjust the slide bar to the right number of years (L)
+    - and adjust the slide bar to the right annual interest rate (I)
+
+##The calculation 
+This is an example of the morgage calculation
+```{r, echo=TRUE}
+ morgage <- function(P, I, L){
+        J <- I/(12*100)
+        N <- 12*L
+        M <- P*J/(1-(1+J)^(-N))
+        return(M)
+}
+def_morgage <- morgage(10000, 6, 20)
+```
+The default estimated monthly payment is `r def_morgage`
+
+##The ui code 
+```{r, echo=TRUE, eval=FALSE}
+shinyUI(fluidPage(
+    
+    # Application title
+    titlePanel("Simple morgage calculator"),
+    
+    # Sidebar with  some inputs 
+    sidebarLayout(
+        sidebarPanel(
+            #Input: Simple integer intervals
+            numericInput("Principal", "What is your loan amount?", value = 10000),
+            sliderInput("Years", "Length of loan in years", min = 0, max = 30, step = 1, value=20),
+            sliderInput("Rate", "What is your interest rate in %?", min= 0, max = 50, step = 0.01, value = 6)
+            #checkboxInput("ShowPlot", "Display plot?", TRUE)
+        ),
+        
+        # Output the monthly payments 
+        mainPanel(
+            h2("Your estimated monthly payment:"),
+            h1(textOutput("MonthlyPayment") )
+            
+        )
+    )
+))
+```
+
+##The server code
+```{r, echo=TRUE, eval=FALSE}
+shinyServer(function(input, output) {
+    #Call to function morgage to calculate the monthly payment M   
+    morgage <- function(P, I, L){
+        J <- I/(12*100)
+        N <- 12*L
+        M <- P*J/(1-(1+J)^(-N))
+        return(M)
+        
+    }
+    
+    
+    output$MonthlyPayment <- renderText({ 
+        morgage(P=input$Principal, I=input$Rate, L=input$Years)})
+    
+})
+```
